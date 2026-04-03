@@ -1,6 +1,6 @@
 import { useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Bell, CalendarDays, Search, UserCircle2 } from 'lucide-react';
+import { Bell, CalendarDays, Search, Shield, UserCircle2 } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
 import { NotificationContext } from '../context/NotificationContext';
 
@@ -17,8 +17,22 @@ const AppHeader = () => {
 
   return (
     <header className="app-header">
-      <div className="flex min-w-0 items-center gap-3 pl-12 md:pl-0">
-        <div className="hidden h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-[linear-gradient(135deg,_#6c94a3_0%,_#8bb0bc_100%)] text-white shadow-[0_14px_30px_rgba(12,20,24,0.2)] sm:flex">
+      <button
+        type="button"
+        onClick={() => navigate('/dashboard')}
+        className="flex min-w-0 items-center gap-3 pl-12 text-left md:min-w-[18rem] md:pl-0"
+      >
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-[linear-gradient(135deg,_#6c94a3_0%,_#8bb0bc_100%)] text-white shadow-[0_14px_30px_rgba(12,20,24,0.2)]">
+          <Shield className="h-5 w-5" />
+        </div>
+        <div className="min-w-0">
+          <p className="truncate text-base font-semibold text-white">ClashGuard</p>
+          <p className="truncate text-xs uppercase tracking-[0.24em] text-slate-300">Student Planner</p>
+        </div>
+      </button>
+
+      <div className="hidden min-w-0 items-center gap-3 lg:flex">
+        <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/8 text-white">
           <CalendarDays className="h-5 w-5" />
         </div>
         <div className="min-w-0">
@@ -47,7 +61,14 @@ const AppHeader = () => {
             </span>
           )}
         </button>
-        <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/8 px-3 py-2 shadow-sm">
+        <button
+          type="button"
+          onClick={() => navigate('/profile')}
+          className={`flex items-center gap-3 rounded-2xl border border-white/10 bg-white/8 px-3 py-2 shadow-sm transition hover:bg-white/14 ${
+            location.pathname === '/profile' ? 'bg-white/18' : ''
+          }`}
+          aria-label="Open profile page"
+        >
           <div className="hidden text-right sm:block">
             <p className="text-sm font-semibold text-white">{user?.name || 'Student'}</p>
             <p className="text-xs text-slate-300">{user?.role || 'Academic account'}</p>
@@ -59,7 +80,7 @@ const AppHeader = () => {
               <UserCircle2 className="h-5 w-5" />
             )}
           </div>
-        </div>
+        </button>
       </div>
     </header>
   );

@@ -11,6 +11,8 @@ import CollisionAnalysisPage from './pages/CollisionAnalysisPage';
 import TaskListPage from './pages/TaskListPage';
 import AddTaskPage from './pages/AddTaskPage';
 import NotificationPage from './pages/NotificationPage';
+import AnalyticsPage from './pages/AnalyticsPage';
+import SettingsPage from './pages/SettingsPage';
 
 function App() {
   return (
@@ -76,6 +78,22 @@ function App() {
               element={
                 <ProtectedRoute>
                   <NotificationPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/analytics"
+              element={
+                <ProtectedRoute>
+                  <AnalyticsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <SettingsPage />
                 </ProtectedRoute>
               }
             />
