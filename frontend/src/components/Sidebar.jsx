@@ -58,11 +58,8 @@ const Sidebar = () => {
         <div className="pointer-events-none absolute inset-x-0 top-0 h-56 bg-[radial-gradient(circle_at_top,_rgba(122,169,184,0.22),_transparent_72%)]"></div>
 
         {/* Navigation */}
-        <div className="relative mb-3 mt-12 flex items-center justify-between px-1 md:mt-0">
+        <div className="relative mb-3 mt-8 flex items-center justify-between px-1 md:mt-0">
           <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-300">Navigation</p>
-          <span className="rounded-full border border-white/10 bg-white/8 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-200">
-            Main
-          </span>
         </div>
 
         <nav className="relative flex-1 space-y-2">

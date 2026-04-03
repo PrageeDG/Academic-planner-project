@@ -36,11 +36,11 @@
   }
 
   .app-main {
-    @apply min-w-0 flex-1 md:h-screen md:overflow-y-auto;
+    @apply min-w-0 flex-1 pt-[88px] md:h-screen md:overflow-y-auto;
   }
 
   .app-header {
-    @apply sticky top-0 z-20 flex min-h-[88px] items-center justify-between gap-4 border-b border-[#203845] bg-[linear-gradient(135deg,_rgba(28,48,59,0.97)_0%,_rgba(39,63,75,0.96)_100%)] px-4 py-4 shadow-[0_12px_28px_rgba(18,31,38,0.28)] backdrop-blur sm:px-6 lg:px-8;
+    @apply fixed left-0 right-0 top-0 z-[80] flex min-h-[88px] items-center justify-between gap-4 border-b border-[#203845] bg-[linear-gradient(135deg,_rgba(28,48,59,0.97)_0%,_rgba(39,63,75,0.96)_100%)] px-4 py-4 shadow-[0_12px_28px_rgba(18,31,38,0.28)] backdrop-blur sm:px-6 lg:px-8;
   }
 
   .page-body {
