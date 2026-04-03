@@ -1,5 +1,5 @@
 const express = require('express');
-const { getProfile, updateProfile, getAllUsers } = require('../controllers/userController');
+const { getProfile, updateProfile, getSettings, updateSettings, getAllUsers } = require('../controllers/userController');
 const authMiddleware = require('../middleware/authMiddleware');
 
 const router = express.Router();
@@ -10,6 +10,8 @@ router.use(authMiddleware);
 // Protected routes
 router.get('/profile', getProfile);
 router.put('/profile', updateProfile);
+router.get('/settings', getSettings);
+router.put('/settings', updateSettings);
 router.get('/', getAllUsers); // Admin only - getAllUsers middleware check inside controller
 
 module.exports = router;
