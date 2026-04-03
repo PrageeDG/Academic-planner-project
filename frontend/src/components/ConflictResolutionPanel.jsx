@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import { CalendarDays, CheckCheck, ClipboardPen, Save, Trash2 } from 'lucide-react';
-
-const STORAGE_KEY = 'collision_resolutions';
+import { collisionAPI } from '../services/api';
 
 const emptyForm = {
   issueKey: '',
@@ -20,6 +19,8 @@ const ConflictResolutionPanel = ({ analysis }) => {
   const [editingId, setEditingId] = useState(null);
   const [success, setSuccess] = useState('');
   const [errors, setErrors] = useState({});
+  const [submitError, setSubmitError] = useState('');
+  const [listLoading, setListLoading] = useState(true);
 
   const issueOptions = useMemo(() => {
     const conflictOptions = (analysis?.collisions || []).map((collision, index) => ({
@@ -42,19 +43,20 @@ const ConflictResolutionPanel = ({ analysis }) => {
   }, [analysis]);
 
   useEffect(() => {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (raw) {
+    const loadResolutions = async () => {
       try {
-        setSavedResolutions(JSON.parse(raw));
-      } catch {
-        setSavedResolutions([]);
+        setListLoading(true);
+        const response = await collisionAPI.getResolutions();
+        setSavedResolutions(response.data.resolutions || []);
+      } catch (error) {
+        setSubmitError(error.response?.data?.message || 'Failed to load saved resolutions.');
+      } finally {
+        setListLoading(false);
       }
-    }
-  }, []);
+    };
 
-  useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(savedResolutions));
-  }, [savedResolutions]);
+    loadResolutions();
+  }, []);
 
   useEffect(() => {
     if (!formData.issueKey && issueOptions[0]) {
@@ -73,6 +75,7 @@ const ConflictResolutionPanel = ({ analysis }) => {
       ...current,
       [name]: '',
     }));
+    setSubmitError('');
 
     if (name === 'issueKey') {
       const selectedIssue = issueOptions.find((issue) => issue.key === value);
@@ -140,50 +143,75 @@ const ConflictResolutionPanel = ({ analysis }) => {
     return Object.keys(nextErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const saveResolution = async () => {
+    const selectedIssue = issueOptions.find((issue) => issue.key === formData.issueKey);
 
+    const payload = {
+      issueKey: formData.issueKey,
+      issueLabel: selectedIssue?.label || formData.issueType,
+      issueType: formData.issueType,
+      issueDate: formData.issueDate,
+      status: formData.status,
+      action: formData.action,
+      suggestedDate: formData.suggestedDate,
+      note: formData.note,
+    };
+
+    if (editingId) {
+      const response = await collisionAPI.updateResolution(editingId, payload);
+      setSavedResolutions((current) =>
+        current.map((item) => (item._id === editingId ? response.data.resolution : item))
+      );
+      setSuccess('Resolution updated successfully.');
+    } else {
+      const response = await collisionAPI.createResolution(payload);
+      setSavedResolutions((current) => [response.data.resolution, ...current]);
+      setSuccess('Resolution saved successfully.');
+    }
+  };
+
+  const handleValidatedSubmit = async (e) => {
+    e.preventDefault();
     if (!validateForm()) {
       setSuccess('');
       return;
     }
 
-    const payload = {
-      id: editingId || `${Date.now()}`,
-      ...formData,
-      updatedAt: new Date().toISOString(),
-    };
-
-    if (editingId) {
-      setSavedResolutions((current) => current.map((item) => (item.id === editingId ? payload : item)));
-      setSuccess('Resolution updated successfully.');
-    } else {
-      setSavedResolutions((current) => [payload, ...current]);
-      setSuccess('Resolution saved successfully.');
+    try {
+      setSubmitError('');
+      await saveResolution();
+      resetForm();
+      window.setTimeout(() => setSuccess(''), 2000);
+    } catch (error) {
+      setSubmitError(error.response?.data?.message || 'Failed to save resolution.');
     }
-
-    resetForm();
-    window.setTimeout(() => setSuccess(''), 2000);
   };
 
   const handleEdit = (resolution) => {
-    setEditingId(resolution.id);
+    setEditingId(resolution._id);
     setErrors({});
+    setSubmitError('');
     setFormData({
       issueKey: resolution.issueKey,
       issueType: resolution.issueType,
-      issueDate: resolution.issueDate,
+      issueDate: resolution.issueDate ? resolution.issueDate.slice(0, 10) : '',
       status: resolution.status,
       action: resolution.action,
-      suggestedDate: resolution.suggestedDate,
+      suggestedDate: resolution.suggestedDate ? resolution.suggestedDate.slice(0, 10) : '',
       note: resolution.note,
     });
   };
 
-  const handleDelete = (id) => {
-    setSavedResolutions((current) => current.filter((item) => item.id !== id));
-    if (editingId === id) {
-      resetForm();
+  const handleDelete = async (id) => {
+    try {
+      setSubmitError('');
+      await collisionAPI.deleteResolution(id);
+      setSavedResolutions((current) => current.filter((item) => item._id !== id));
+      if (editingId === id) {
+        resetForm();
+      }
+    } catch (error) {
+      setSubmitError(error.response?.data?.message || 'Failed to delete resolution.');
     }
   };
 
@@ -201,8 +229,9 @@ const ConflictResolutionPanel = ({ analysis }) => {
         </div>
 
         {success && <div className="alert-success mb-5">{success}</div>}
+        {submitError && <div className="alert-danger mb-5">{submitError}</div>}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleValidatedSubmit} className="space-y-5">
           <div>
             <label className="mb-2 block text-sm font-medium text-slate-700">Select conflict</label>
             <select name="issueKey" value={formData.issueKey} onChange={handleChange} className="select-field">
@@ -303,13 +332,17 @@ const ConflictResolutionPanel = ({ analysis }) => {
           </div>
 
           {savedResolutions.length === 0 ? (
+            listLoading ? (
+              <div className="soft-card p-4 text-sm text-slate-500">Loading saved resolutions...</div>
+            ) : (
             <div className="soft-card p-4 text-sm text-slate-500">
               No resolution records yet. Save a response for a conflict to show problem solving and decision tracking.
             </div>
+            )
           ) : (
             <div className="space-y-3">
               {savedResolutions.map((resolution) => (
-                <div key={resolution.id} className="soft-card p-4">
+                <div key={resolution._id} className="soft-card p-4">
                   <div className="mb-2 flex flex-wrap items-center gap-2">
                     <span className="data-pill data-pill-accent">{resolution.issueType}</span>
                     <span className="data-pill data-pill-neutral">{resolution.status}</span>
@@ -327,7 +360,7 @@ const ConflictResolutionPanel = ({ analysis }) => {
                     <button type="button" onClick={() => handleEdit(resolution)} className="secondary-btn px-4 py-2">
                       Edit
                     </button>
-                    <button type="button" onClick={() => handleDelete(resolution.id)} className="danger-btn px-4 py-2">
+                    <button type="button" onClick={() => handleDelete(resolution._id)} className="danger-btn px-4 py-2">
                       <Trash2 className="h-4 w-4" />
                       Delete
                     </button>
