@@ -16,6 +16,11 @@ const taskSchema = new mongoose.Schema({
     required: [true, 'Module name is required'],
     trim: true
   },
+  moduleCode: {
+    type: String,
+    trim: true,
+    default: ''
+  },
   type: {
     type: String,
     enum: ['Assignment', 'Exam', 'Quiz', 'Presentation'],
@@ -36,10 +41,30 @@ const taskSchema = new mongoose.Schema({
     min: [1, 'Workload must be at least 1 hour'],
     max: [48, 'Workload cannot exceed 48 hours']
   },
+  progress: {
+    type: Number,
+    min: [0, 'Progress cannot be less than 0'],
+    max: [100, 'Progress cannot exceed 100'],
+    default: 0
+  },
   status: {
     type: String,
-    enum: ['Pending', 'Completed', 'Overdue'],
+    enum: ['Pending', 'In Progress', 'Completed', 'Overdue'],
     default: 'Pending'
+  },
+  notes: {
+    type: String,
+    trim: true,
+    default: ''
+  },
+  resourceLink: {
+    type: String,
+    trim: true,
+    default: ''
+  },
+  reminderSet: {
+    type: Boolean,
+    default: false
   },
   createdAt: {
     type: Date,
@@ -47,8 +72,14 @@ const taskSchema = new mongoose.Schema({
   }
 });
 
-// Update status based on deadline - using async function
 taskSchema.pre('save', async function() {
+  if (this.progress >= 100) {
+    this.progress = 100;
+    this.status = 'Completed';
+  } else if (this.status === 'Completed' && this.progress < 100) {
+    this.progress = 100;
+  }
+
   if (this.status !== 'Completed' && new Date() > this.deadline) {
     this.status = 'Overdue';
   }
