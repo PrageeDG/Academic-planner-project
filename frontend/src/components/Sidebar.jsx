@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { 
   LogOut, Menu, X, Home, User, BarChart3, Calendar, 
-  Settings, Shield, Bell, Sparkles, AlertTriangle, CheckSquare, ChevronRight
+  Settings, Shield, AlertTriangle, CheckSquare, ChevronRight
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -29,7 +29,6 @@ const Sidebar = () => {
     { icon: CheckSquare, label: 'My Tasks', path: '/tasks' },
     { icon: Calendar, label: 'Deadlines', path: '/deadlines' },
     { icon: BarChart3, label: 'Analytics', path: '/analytics' },
-    { icon: Bell, label: 'Notifications', path: '/notifications' },
     { icon: User, label: 'Profile', path: '/profile' },
     { icon: Settings, label: 'Settings', path: '/settings' },
   ];
