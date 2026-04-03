@@ -1,9 +1,14 @@
 import { useContext } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Bell, CalendarDays, Search, UserCircle2 } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
+import { NotificationContext } from '../context/NotificationContext';
 
 const AppHeader = () => {
   const { user } = useContext(AuthContext);
+  const { unreadCount } = useContext(NotificationContext);
+  const navigate = useNavigate();
+  const location = useLocation();
   const todayLabel = new Intl.DateTimeFormat('en-US', {
     weekday: 'long',
     month: 'long',
@@ -27,8 +32,20 @@ const AppHeader = () => {
           <Search className="h-4 w-4" />
           Search
         </button>
-        <button className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/8 text-slate-100 transition hover:bg-white/14">
+        <button
+          type="button"
+          onClick={() => navigate('/notifications')}
+          className={`relative inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 text-slate-100 transition ${
+            location.pathname === '/notifications' ? 'bg-white/18' : 'bg-white/8 hover:bg-white/14'
+          }`}
+          aria-label="Open notifications page"
+        >
           <Bell className="h-5 w-5" />
+          {unreadCount > 0 && (
+            <span className="absolute -right-1.5 -top-1.5 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1.5 text-[11px] font-bold text-white">
+              {unreadCount}
+            </span>
+          )}
         </button>
         <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/8 px-3 py-2 shadow-sm">
           <div className="hidden text-right sm:block">
