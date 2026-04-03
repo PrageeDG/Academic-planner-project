@@ -1,7 +1,46 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
-import { CalendarDays, CheckCheck, ClipboardPen, Save, Trash2 } from 'lucide-react';
+import { CalendarDays, CheckCheck, ClipboardPen, Clock3, Save, Trash2 } from 'lucide-react';
 import { collisionAPI } from '../services/api';
+
+const toDateTimeLocal = (value) => {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const offset = date.getTimezoneOffset();
+  const localDate = new Date(date.getTime() - offset * 60 * 1000);
+  return localDate.toISOString().slice(0, 16);
+};
+
+const getDatePart = (value) => {
+  if (!value) return '';
+  return value.slice(0, 10);
+};
+
+const getTimePart = (value) => {
+  if (!value || value.length < 16) return '';
+  return value.slice(11, 16);
+};
+
+const mergeDateAndTime = (datePart, timePart) => {
+  if (!datePart) return '';
+  return `${datePart}T${timePart || '00:00'}`;
+};
+
+const formatPreviewDateTime = (value) => {
+  if (!value) return 'No date and time selected yet';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Invalid date selection';
+
+  return date.toLocaleString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
 
 const emptyForm = {
   issueKey: '',
@@ -14,6 +53,8 @@ const emptyForm = {
 };
 
 const ConflictResolutionPanel = ({ analysis }) => {
+  const suggestedDateRef = useRef(null);
+  const suggestedTimeRef = useRef(null);
   const [formData, setFormData] = useState(emptyForm);
   const [savedResolutions, setSavedResolutions] = useState([]);
   const [editingId, setEditingId] = useState(null);
@@ -64,7 +105,7 @@ const ConflictResolutionPanel = ({ analysis }) => {
         ...current,
         issueKey: issueOptions[0].key,
         issueType: issueOptions[0].type,
-        issueDate: issueOptions[0].date.slice(0, 10),
+        issueDate: toDateTimeLocal(issueOptions[0].date),
       }));
     }
   }, [issueOptions, formData.issueKey]);
@@ -83,7 +124,7 @@ const ConflictResolutionPanel = ({ analysis }) => {
         ...current,
         issueKey: value,
         issueType: selectedIssue?.type || current.issueType,
-        issueDate: selectedIssue?.date ? selectedIssue.date.slice(0, 10) : current.issueDate,
+        issueDate: selectedIssue?.date ? toDateTimeLocal(selectedIssue.date) : current.issueDate,
       }));
       return;
     }
@@ -94,13 +135,45 @@ const ConflictResolutionPanel = ({ analysis }) => {
     }));
   };
 
+  const handleDateTimePartChange = (fieldName, part, value) => {
+    setErrors((current) => ({
+      ...current,
+      [fieldName]: '',
+    }));
+    setSubmitError('');
+
+    setFormData((current) => {
+      const existingValue = current[fieldName];
+      const nextDate = part === 'date' ? value : getDatePart(existingValue);
+      const nextTime = part === 'time' ? value : getTimePart(existingValue);
+
+      return {
+        ...current,
+        [fieldName]: nextDate ? mergeDateAndTime(nextDate, nextTime) : '',
+      };
+    });
+  };
+
+  const openNativePicker = (inputRef) => {
+    const input = inputRef.current;
+    if (!input) return;
+
+    if (typeof input.showPicker === 'function') {
+      input.showPicker();
+      return;
+    }
+
+    input.focus();
+    input.click();
+  };
+
   const resetForm = () => {
     const firstIssue = issueOptions[0];
     setFormData({
       ...emptyForm,
       issueKey: firstIssue?.key || '',
       issueType: firstIssue?.type || 'Same-Day Conflict',
-      issueDate: firstIssue?.date ? firstIssue.date.slice(0, 10) : '',
+      issueDate: firstIssue?.date ? toDateTimeLocal(firstIssue.date) : '',
     });
     setErrors({});
     setEditingId(null);
@@ -194,10 +267,10 @@ const ConflictResolutionPanel = ({ analysis }) => {
     setFormData({
       issueKey: resolution.issueKey,
       issueType: resolution.issueType,
-      issueDate: resolution.issueDate ? resolution.issueDate.slice(0, 10) : '',
+      issueDate: toDateTimeLocal(resolution.issueDate),
       status: resolution.status,
       action: resolution.action,
-      suggestedDate: resolution.suggestedDate ? resolution.suggestedDate.slice(0, 10) : '',
+      suggestedDate: toDateTimeLocal(resolution.suggestedDate),
       note: resolution.note,
     });
   };
@@ -259,7 +332,19 @@ const ConflictResolutionPanel = ({ analysis }) => {
             </div>
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-700">Issue date</label>
-              <input type="date" name="issueDate" value={formData.issueDate} onChange={handleChange} className="input-field" />
+              <div className="relative">
+                <input
+                  type="text"
+                  value={formatPreviewDateTime(formData.issueDate)}
+                  readOnly
+                  className="input-field cursor-not-allowed bg-slate-100 pr-14 text-slate-600"
+                  aria-label="Issue date"
+                />
+                <div className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-lg bg-slate-200 text-slate-600">
+                  <CalendarDays className="h-4 w-4" />
+                </div>
+              </div>
+              <p className="mt-2 text-xs text-slate-500">This date is filled automatically from the selected conflict and stays fixed for accuracy.</p>
               {errors.issueDate && <p className="mt-2 text-sm text-rose-700">{errors.issueDate}</p>}
             </div>
           </div>
@@ -290,7 +375,45 @@ const ConflictResolutionPanel = ({ analysis }) => {
 
           <div>
             <label className="mb-2 block text-sm font-medium text-slate-700">Suggested new date</label>
-            <input type="date" name="suggestedDate" value={formData.suggestedDate} onChange={handleChange} className="input-field" />
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="relative">
+                <input
+                  ref={suggestedDateRef}
+                  type="date"
+                  value={getDatePart(formData.suggestedDate)}
+                  onChange={(e) => handleDateTimePartChange('suggestedDate', 'date', e.target.value)}
+                  className="input-field pr-14"
+                  aria-label="Suggested new date"
+                />
+                <button
+                  type="button"
+                  onClick={() => openNativePicker(suggestedDateRef)}
+                  className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600 transition hover:bg-slate-200"
+                  aria-label="Open suggested date picker"
+                >
+                  <CalendarDays className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="relative">
+                <input
+                  ref={suggestedTimeRef}
+                  type="time"
+                  value={getTimePart(formData.suggestedDate)}
+                  onChange={(e) => handleDateTimePartChange('suggestedDate', 'time', e.target.value)}
+                  className="input-field pr-14"
+                  aria-label="Suggested new time"
+                />
+                <button
+                  type="button"
+                  onClick={() => openNativePicker(suggestedTimeRef)}
+                  className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600 transition hover:bg-slate-200"
+                  aria-label="Open suggested time picker"
+                >
+                  <Clock3 className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+            <p className="mt-2 text-xs text-slate-500">Pick a realistic replacement slot if you plan to move the work to another date.</p>
             {errors.suggestedDate && <p className="mt-2 text-sm text-rose-700">{errors.suggestedDate}</p>}
           </div>
 
@@ -350,11 +473,28 @@ const ConflictResolutionPanel = ({ analysis }) => {
                   <p className="text-sm font-semibold text-slate-900">{resolution.action}</p>
                   <p className="mt-1 flex items-center gap-2 text-xs text-slate-500">
                     <CalendarDays className="h-3.5 w-3.5" />
-                    {resolution.issueDate || 'No issue date'}
+                    {resolution.issueDate
+                      ? new Date(resolution.issueDate).toLocaleString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })
+                      : 'No issue date'}
                   </p>
                   <p className="mt-2 text-sm text-slate-600">{resolution.note || 'No note added.'}</p>
                   {resolution.suggestedDate && (
-                    <p className="mt-2 text-xs font-medium text-slate-700">Suggested move: {resolution.suggestedDate}</p>
+                    <p className="mt-2 text-xs font-medium text-slate-700">
+                      Suggested move:{' '}
+                      {new Date(resolution.suggestedDate).toLocaleString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </p>
                   )}
                   <div className="mt-3 flex gap-2">
                     <button type="button" onClick={() => handleEdit(resolution)} className="secondary-btn px-4 py-2">
