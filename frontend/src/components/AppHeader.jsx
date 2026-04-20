@@ -112,7 +112,7 @@ const AppHeader = () => {
         onClick={() => navigate('/dashboard')}
         className="flex min-w-0 items-center gap-3 pl-12 text-left md:w-72 md:flex-none md:pl-0"
       >
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-[linear-gradient(135deg,_#6c94a3_0%,_#8bb0bc_100%)] text-white shadow-[0_14px_30px_rgba(12,20,24,0.2)]">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-[linear-gradient(135deg,#6c94a3_0%,#8bb0bc_100%)] text-white shadow-[0_14px_30px_rgba(12,20,24,0.2)]">
           <Shield className="h-5 w-5" />
         </div>
         <div className="min-w-0">
@@ -126,7 +126,7 @@ const AppHeader = () => {
           <button
             type="button"
             onClick={handleOpenSearch}
-            className="flex w-full items-center gap-3 rounded-[24px] border border-white/10 bg-white/8 px-4 py-3 text-left text-slate-100 transition hover:bg-white/12"
+            className="flex w-full items-center gap-3 rounded-3xl border border-white/10 bg-white/8 px-4 py-3 text-left text-slate-100 transition hover:bg-white/12"
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/8 text-white">
               <Search className="h-4 w-4" />
@@ -178,8 +178,10 @@ const AppHeader = () => {
             <p className="text-sm font-semibold text-white">{user?.name || 'Student'}</p>
             <p className="text-xs text-slate-300">{user?.role || 'Academic account'}</p>
           </div>
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-[linear-gradient(135deg,_#6b95a4_0%,_#8db4c0_100%)] text-white">
-            {user?.name ? (
+          <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-[linear-gradient(135deg,#6b95a4_0%,#8db4c0_100%)] text-white">
+            {user?.profileImage ? (
+              <img src={user.profileImage} alt="Profile" className="h-full w-full object-cover" />
+            ) : user?.name ? (
               <span className="text-sm font-bold">{user.name.charAt(0).toUpperCase()}</span>
             ) : (
               <UserCircle2 className="h-5 w-5" />
@@ -189,7 +191,7 @@ const AppHeader = () => {
       </div>
 
       {searchOpen && (
-        <div className="fixed inset-x-0 top-[88px] z-[70] px-4 sm:px-6 lg:px-8" ref={searchPanelRef}>
+        <div className="fixed inset-x-0 top-22 z-70 px-4 sm:px-6 lg:px-8" ref={searchPanelRef}>
           <div className="mx-auto w-full max-w-5xl overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_28px_70px_rgba(15,23,42,0.2)]">
             <div className="border-b border-slate-200 p-4">
               <div className="relative">
