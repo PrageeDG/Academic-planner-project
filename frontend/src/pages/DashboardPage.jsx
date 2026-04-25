@@ -36,6 +36,7 @@ const DashboardPage = () => {
         setLoading(true);
         setError('');
 
+        
         const [tasksResult, collisionResult, burnoutResult] = await Promise.allSettled([
           taskAPI.getTasks(),
           collisionAPI.analyzeCollisions(),
