@@ -53,6 +53,7 @@ const generateToken = (id, role) => {
   });
 };
 
+
 // @desc    Register user
 // @route   POST /api/auth/register
 // @access  Public
