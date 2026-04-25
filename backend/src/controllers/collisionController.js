@@ -1,4 +1,5 @@
 const Task = require('../models/Task');
+const CollisionResolution = require('../models/CollisionResolution');
 
 // Helper function to format date to YYYY-MM-DD
 const formatDate = (date) => {
@@ -17,6 +18,43 @@ const getWeekNumber = (date) => {
   const yearStart = new Date(d.getFullYear(), 0, 1);
   const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
   return `${d.getFullYear()}-W${weekNo}`;
+};
+
+const normalizeResolutionPayload = (payload) => {
+  const data = { ...payload };
+
+  if (!data.issueKey || !data.issueLabel || !data.issueType || !data.issueDate || !data.status || !data.action) {
+    throw new Error('Please provide all required resolution fields');
+  }
+
+  const issueDate = new Date(data.issueDate);
+  if (isNaN(issueDate.getTime())) {
+    throw new Error('Invalid issue date');
+  }
+  data.issueDate = issueDate;
+
+  if (data.suggestedDate) {
+    const suggestedDate = new Date(data.suggestedDate);
+    if (isNaN(suggestedDate.getTime())) {
+      throw new Error('Invalid suggested date');
+    }
+    if (suggestedDate < issueDate) {
+      throw new Error('Suggested date should be on or after the issue date');
+    }
+    data.suggestedDate = suggestedDate;
+  } else {
+    data.suggestedDate = null;
+  }
+
+  if (!data.note || data.note.trim().length < 12) {
+    throw new Error('Resolution note should be at least 12 characters');
+  }
+
+  data.note = data.note.trim();
+  data.issueKey = data.issueKey.trim();
+  data.issueLabel = data.issueLabel.trim();
+
+  return data;
 };
 
 // Analyze deadlines and detect collisions
@@ -267,6 +305,126 @@ exports.checkTaskCollision = async (req, res) => {
       success: false,
       message: 'Error checking task collision',
       error: error.message
+    });
+  }
+};
+
+// @desc    Get saved collision resolutions
+// @route   GET /api/collision/resolutions
+// @access  Private
+exports.getCollisionResolutions = async (req, res) => {
+  try {
+    const resolutions = await CollisionResolution.find({ userId: req.userId }).sort({ updatedAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      resolutions,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error loading collision resolutions',
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Create collision resolution
+// @route   POST /api/collision/resolutions
+// @access  Private
+exports.createCollisionResolution = async (req, res) => {
+  try {
+    const payload = normalizeResolutionPayload(req.body);
+
+    const resolution = await CollisionResolution.create({
+      userId: req.userId,
+      ...payload,
+    });
+
+    res.status(201).json({
+      success: true,
+      resolution,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// @desc    Update collision resolution
+// @route   PUT /api/collision/resolutions/:id
+// @access  Private
+exports.updateCollisionResolution = async (req, res) => {
+  try {
+    const existing = await CollisionResolution.findById(req.params.id);
+
+    if (!existing) {
+      return res.status(404).json({
+        success: false,
+        message: 'Resolution record not found',
+      });
+    }
+
+    if (existing.userId.toString() !== req.userId.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to update this resolution',
+      });
+    }
+
+    const payload = normalizeResolutionPayload(req.body);
+
+    const resolution = await CollisionResolution.findByIdAndUpdate(req.params.id, payload, {
+      returnDocument: 'after',
+      runValidators: true,
+    });
+
+    res.status(200).json({
+      success: true,
+      resolution,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// @desc    Delete collision resolution
+// @route   DELETE /api/collision/resolutions/:id
+// @access  Private
+exports.deleteCollisionResolution = async (req, res) => {
+  try {
+    const resolution = await CollisionResolution.findById(req.params.id);
+
+    if (!resolution) {
+      return res.status(404).json({
+        success: false,
+        message: 'Resolution record not found',
+      });
+    }
+
+    if (resolution.userId.toString() !== req.userId.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to delete this resolution',
+      });
+    }
+
+    await CollisionResolution.findByIdAndDelete(req.params.id);
+
+    res.status(200).json({
+      success: true,
+      message: 'Resolution deleted successfully',
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting resolution',
+      error: error.message,
     });
   }
 };
