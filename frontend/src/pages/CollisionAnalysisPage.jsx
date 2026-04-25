@@ -4,7 +4,6 @@ import Sidebar from '../components/Sidebar';
 import AppHeader from '../components/AppHeader';
 import ConflictList from '../components/ConflictList';
 import WeeklyWorkloadCard from '../components/WeeklyWorkloadCard';
-import ConflictResolutionPanel from '../components/ConflictResolutionPanel';
 import { collisionAPI } from '../services/api';
 
 const CollisionAnalysisPage = () => {
@@ -94,8 +93,6 @@ const CollisionAnalysisPage = () => {
                   <WeeklyWorkloadCard analysis={analysis} />
                 </div>
               </div>
-
-              <ConflictResolutionPanel analysis={analysis} />
 
               {analysis.warnings && analysis.warnings.length > 0 && (
                 <div className="surface-card p-6">
