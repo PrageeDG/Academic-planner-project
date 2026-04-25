@@ -18,7 +18,6 @@ const getStoredReadMap = () => {
   }
 };
 
-
 export const NotificationProvider = ({ children }) => {
   const { isAuthenticated } = useContext(AuthContext);
   const [notifications, setNotifications] = useState([]);
