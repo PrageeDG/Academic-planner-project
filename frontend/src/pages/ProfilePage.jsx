@@ -22,6 +22,7 @@ const ProfilePage = () => {
     studentId: user?.studentId || '',
   });
 
+  
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
