@@ -13,6 +13,7 @@ exports.getProfile = async (req, res) => {
         message: 'User not found',
       });
     }
+    
 
     res.status(200).json({
       success: true,
