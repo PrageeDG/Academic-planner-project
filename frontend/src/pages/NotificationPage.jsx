@@ -16,6 +16,7 @@ const NotificationPage = () => {
     refreshNotifications,
   } = useContext(NotificationContext);
   const [activeFilter, setActiveFilter] = useState('Unread');
+  
 
   const toneClasses = useMemo(
     () => ({
