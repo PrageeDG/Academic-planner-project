@@ -23,6 +23,7 @@ const ProfilePage = () => {
   });
 
   
+  
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
