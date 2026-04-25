@@ -12,6 +12,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 
+
 const LoginPage = () => {
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
