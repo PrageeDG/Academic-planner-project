@@ -48,19 +48,7 @@ export const authAPI = {
 // User endpoints
 export const userAPI = {
   getProfile: () => api.get('/users/profile'),
-  updateProfile: (data) => {
-    if (data instanceof FormData) {
-      return api.put('/users/profile', data, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-    }
-
-    return api.put('/users/profile', data);
-  },
-  getSettings: () => api.get('/users/settings'),
-  updateSettings: (data) => api.put('/users/settings', data),
+  updateProfile: (data) => api.put('/users/profile', data),
   getAllUsers: () => api.get('/users'),
 };
 
@@ -75,10 +63,6 @@ export const burnoutAPI = {
 export const collisionAPI = {
   analyzeCollisions: () => api.get('/collision/analyze'),
   checkTaskCollision: (data) => api.post('/collision/check', data),
-  getResolutions: () => api.get('/collision/resolutions'),
-  createResolution: (data) => api.post('/collision/resolutions', data),
-  updateResolution: (id, data) => api.put(`/collision/resolutions/${id}`, data),
-  deleteResolution: (id) => api.delete(`/collision/resolutions/${id}`),
 };
 
 // Task endpoints

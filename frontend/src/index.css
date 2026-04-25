@@ -36,11 +36,11 @@
   }
 
   .app-main {
-    @apply min-w-0 flex-1 pt-[88px] md:h-screen md:overflow-y-auto;
+    @apply min-w-0 flex-1 md:h-screen md:overflow-y-auto;
   }
 
   .app-header {
-    @apply fixed left-0 right-0 top-0 z-[80] flex min-h-[88px] items-center justify-between gap-4 border-b border-[#203845] bg-[linear-gradient(135deg,_rgba(28,48,59,0.97)_0%,_rgba(39,63,75,0.96)_100%)] px-4 py-4 shadow-[0_12px_28px_rgba(18,31,38,0.28)] backdrop-blur sm:px-6 lg:px-8;
+    @apply sticky top-0 z-20 flex items-center justify-between gap-4 border-b border-[#203845] bg-[linear-gradient(135deg,_rgba(28,48,59,0.97)_0%,_rgba(39,63,75,0.96)_100%)] px-4 py-4 shadow-[0_12px_28px_rgba(18,31,38,0.28)] backdrop-blur sm:px-6 lg:px-8;
   }
 
   .page-body {
@@ -57,63 +57,6 @@
 
   .auth-card {
     @apply relative w-full rounded-[28px] border border-slate-200/80 bg-white/92 p-8 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur;
-  }
-
-  .auth-spotlight {
-    @apply pointer-events-none absolute inset-0 overflow-hidden;
-  }
-
-  .auth-orb-a {
-    @apply absolute -left-20 top-10 h-72 w-72 rounded-full bg-[radial-gradient(circle,_rgba(92,129,154,0.34)_0%,_rgba(92,129,154,0)_72%)] blur-2xl;
-  }
-
-  .auth-orb-b {
-    @apply absolute right-0 top-0 h-80 w-80 rounded-full bg-[radial-gradient(circle,_rgba(224,161,94,0.22)_0%,_rgba(224,161,94,0)_70%)] blur-3xl;
-  }
-
-  .auth-orb-c {
-    @apply absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-[radial-gradient(circle,_rgba(98,152,132,0.24)_0%,_rgba(98,152,132,0)_72%)] blur-3xl;
-  }
-
-  .auth-layout {
-    @apply relative z-10 grid w-full max-w-6xl items-stretch gap-6 lg:grid-cols-[0.92fr_1.08fr];
-  }
-
-  .auth-showcase {
-    @apply relative hidden overflow-hidden rounded-[34px] border border-white/25 bg-[linear-gradient(145deg,_rgba(26,55,70,0.95)_0%,_rgba(38,72,89,0.94)_48%,_rgba(85,118,113,0.9)_100%)] p-8 text-white shadow-[0_30px_80px_rgba(15,23,42,0.22)] lg:flex lg:flex-col;
-  }
-
-  .auth-showcase::before {
-    content: "";
-    @apply absolute inset-x-0 top-0 h-56 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.22),_transparent_72%)];
-  }
-
-  .auth-showcase-card {
-    @apply relative rounded-[26px] border border-white/12 bg-white/10 p-5 backdrop-blur;
-  }
-
-  .auth-stat-chip {
-    @apply rounded-2xl border border-white/12 bg-white/10 px-4 py-3 backdrop-blur;
-  }
-
-  .auth-form-wrap {
-    @apply relative w-full max-w-2xl;
-  }
-
-  .auth-hero-badge {
-    @apply inline-flex items-center gap-3 rounded-2xl border border-slate-200/80 bg-white/86 px-4 py-3 shadow-[0_16px_36px_rgba(15,23,42,0.08)] backdrop-blur;
-  }
-
-  .auth-step-dot {
-    @apply h-2.5 w-10 rounded-full bg-slate-300 transition;
-  }
-
-  .auth-step-dot-active {
-    @apply bg-[linear-gradient(90deg,_#2f5668_0%,_#d8974f_100%)];
-  }
-
-  .auth-accent-panel {
-    @apply rounded-[24px] border border-slate-200/80 bg-[linear-gradient(180deg,_rgba(244,248,249,0.96)_0%,_rgba(237,242,245,0.96)_100%)] p-5;
   }
 
   .glass-card,

@@ -1,5 +1,5 @@
 import { createContext, useState, useEffect } from 'react';
-import { authAPI, userAPI } from '../services/api';
+import { authAPI } from '../services/api';
 
 export const AuthContext = createContext();
 
@@ -75,7 +75,7 @@ export const AuthProvider = ({ children }) => {
 
   const updateProfile = async (userData) => {
     try {
-      const response = await userAPI.updateProfile(userData);
+      const response = await authAPI.getProfile();
       const updatedUser = response.data.user;
 
       localStorage.setItem('user', JSON.stringify(updatedUser));

@@ -16,24 +16,4 @@ router.get('/analyze', collisionController.analyzeCollisions);
 // @access  Private
 router.post('/check', collisionController.checkTaskCollision);
 
-// @route   GET /api/collision/resolutions
-// @desc    Get saved collision resolution records
-// @access  Private
-router.get('/resolutions', collisionController.getCollisionResolutions);
-
-// @route   POST /api/collision/resolutions
-// @desc    Create a collision resolution record
-// @access  Private
-router.post('/resolutions', collisionController.createCollisionResolution);
-
-// @route   PUT /api/collision/resolutions/:id
-// @desc    Update a collision resolution record
-// @access  Private
-router.put('/resolutions/:id', collisionController.updateCollisionResolution);
-
-// @route   DELETE /api/collision/resolutions/:id
-// @desc    Delete a collision resolution record
-// @access  Private
-router.delete('/resolutions/:id', collisionController.deleteCollisionResolution);
-
 module.exports = router;

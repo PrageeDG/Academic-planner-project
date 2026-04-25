@@ -2,57 +2,12 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
-const getProfileImageUrl = (profileImage, req) => {
-  if (!profileImage) {
-    return '';
-  }
-
-  if (profileImage.startsWith('data:') || profileImage.startsWith('http')) {
-    return profileImage;
-  }
-
-  if (profileImage.startsWith('/')) {
-    return `${req.protocol}://${req.get('host')}${profileImage}`;
-  }
-
-  return profileImage;
-};
-
-const defaultSettings = {
-  dailyWorkloadLimit: 10,
-  weeklyWorkloadLimit: 25,
-  dueSoonWindow: 3,
-  notificationRefreshMinutes: 1,
-  showUnreadFirst: true,
-  browserAlerts: true,
-  reminderHighlights: true,
-  dashboardFocus: 'Balanced overview',
-};
-
-const serializeUser = (user, req) => ({
-  id: user._id,
-  name: user.name,
-  email: user.email,
-  role: user.role,
-  studentId: user.studentId,
-  faculty: user.faculty,
-  degree: user.degree,
-  year: user.year,
-  campus: user.campus,
-  profileImage: getProfileImageUrl(user.profileImage, req),
-  settings: {
-    ...defaultSettings,
-    ...(user.settings || {}),
-  },
-});
-
 // Generate JWT Token
 const generateToken = (id, role) => {
   return jwt.sign({ id, role }, process.env.JWT_SECRET, {
     expiresIn: '7d',
   });
 };
-
 
 // @desc    Register user
 // @route   POST /api/auth/register
@@ -103,7 +58,16 @@ exports.register = async (req, res) => {
       success: true,
       message: 'User created successfully',
       token,
-      user: serializeUser(user, req),
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        faculty: user.faculty,
+        degree: user.degree,
+        year: user.year,
+        campus: user.campus,
+      },
     });
   } catch (error) {
     res.status(500).json({
@@ -153,7 +117,16 @@ exports.login = async (req, res) => {
       success: true,
       message: 'Login successful',
       token,
-      user: serializeUser(user, req),
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        faculty: user.faculty,
+        degree: user.degree,
+        year: user.year,
+        campus: user.campus,
+      },
     });
   } catch (error) {
     res.status(500).json({
@@ -172,7 +145,17 @@ exports.getProfile = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      user: serializeUser(user, req),
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        studentId: user.studentId,
+        faculty: user.faculty,
+        degree: user.degree,
+        year: user.year,
+        campus: user.campus,
+      },
     });
   } catch (error) {
     res.status(500).json({

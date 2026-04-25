@@ -1,52 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
-const settingsSchema = new mongoose.Schema(
-  {
-    dailyWorkloadLimit: {
-      type: Number,
-      default: 10,
-      min: 1,
-      max: 24,
-    },
-    weeklyWorkloadLimit: {
-      type: Number,
-      default: 25,
-      min: 5,
-      max: 80,
-    },
-    dueSoonWindow: {
-      type: Number,
-      default: 3,
-      min: 1,
-      max: 14,
-    },
-    notificationRefreshMinutes: {
-      type: Number,
-      default: 1,
-      enum: [1, 5, 10, 15],
-    },
-    showUnreadFirst: {
-      type: Boolean,
-      default: true,
-    },
-    browserAlerts: {
-      type: Boolean,
-      default: true,
-    },
-    reminderHighlights: {
-      type: Boolean,
-      default: true,
-    },
-    dashboardFocus: {
-      type: String,
-      default: 'Balanced overview',
-      enum: ['Balanced overview', 'Deadline first', 'Health first', 'Progress first'],
-    },
-  },
-  { _id: false }
-);
-
 const userSchema = new mongoose.Schema(
   {
     name: {
@@ -97,14 +51,6 @@ const userSchema = new mongoose.Schema(
     campus: {
       type: String,
       default: 'SLIIT Malabe',
-    },
-    profileImage: {
-      type: String,
-      default: '',
-    },
-    settings: {
-      type: settingsSchema,
-      default: () => ({}),
     },
     createdAt: {
       type: Date,
