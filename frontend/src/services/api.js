@@ -48,7 +48,17 @@ export const authAPI = {
 // User endpoints
 export const userAPI = {
   getProfile: () => api.get('/users/profile'),
-  updateProfile: (data) => api.put('/users/profile', data),
+  updateProfile: (data) => {
+    if (data instanceof FormData) {
+      return api.put('/users/profile', data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+    }
+
+    return api.put('/users/profile', data);
+  },
   getSettings: () => api.get('/users/settings'),
   updateSettings: (data) => api.put('/users/settings', data),
   getAllUsers: () => api.get('/users'),

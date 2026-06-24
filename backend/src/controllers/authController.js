@@ -2,6 +2,22 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
+const getProfileImageUrl = (profileImage, req) => {
+  if (!profileImage) {
+    return '';
+  }
+
+  if (profileImage.startsWith('data:') || profileImage.startsWith('http')) {
+    return profileImage;
+  }
+
+  if (profileImage.startsWith('/')) {
+    return `${req.protocol}://${req.get('host')}${profileImage}`;
+  }
+
+  return profileImage;
+};
+
 const defaultSettings = {
   dailyWorkloadLimit: 10,
   weeklyWorkloadLimit: 25,
@@ -13,7 +29,7 @@ const defaultSettings = {
   dashboardFocus: 'Balanced overview',
 };
 
-const serializeUser = (user) => ({
+const serializeUser = (user, req) => ({
   id: user._id,
   name: user.name,
   email: user.email,
@@ -23,6 +39,7 @@ const serializeUser = (user) => ({
   degree: user.degree,
   year: user.year,
   campus: user.campus,
+  profileImage: getProfileImageUrl(user.profileImage, req),
   settings: {
     ...defaultSettings,
     ...(user.settings || {}),
@@ -85,7 +102,7 @@ exports.register = async (req, res) => {
       success: true,
       message: 'User created successfully',
       token,
-      user: serializeUser(user),
+      user: serializeUser(user, req),
     });
   } catch (error) {
     res.status(500).json({
@@ -135,7 +152,7 @@ exports.login = async (req, res) => {
       success: true,
       message: 'Login successful',
       token,
-      user: serializeUser(user),
+      user: serializeUser(user, req),
     });
   } catch (error) {
     res.status(500).json({
@@ -154,7 +171,7 @@ exports.getProfile = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      user: serializeUser(user),
+      user: serializeUser(user, req),
     });
   } catch (error) {
     res.status(500).json({

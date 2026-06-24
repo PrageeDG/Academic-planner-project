@@ -1,4 +1,6 @@
 const User = require('../models/User');
+const fs = require('fs/promises');
+const path = require('path');
 
 const defaultSettings = {
   dailyWorkloadLimit: 10,
@@ -11,7 +13,43 @@ const defaultSettings = {
   dashboardFocus: 'Balanced overview',
 };
 
-const serializeUser = (user) => ({
+const getProfileImageUrl = (profileImage, req) => {
+  if (!profileImage) {
+    return '';
+  }
+
+  if (profileImage.startsWith('data:') || profileImage.startsWith('http')) {
+    return profileImage;
+  }
+
+  if (profileImage.startsWith('/')) {
+    return `${req.protocol}://${req.get('host')}${profileImage}`;
+  }
+
+  return profileImage;
+};
+
+const deleteStoredProfileImage = async (profileImage) => {
+  if (!profileImage || profileImage.startsWith('data:') || profileImage.startsWith('http')) {
+    return;
+  }
+
+  if (!profileImage.startsWith('/uploads/')) {
+    return;
+  }
+
+  const filePath = path.join(__dirname, '..', '..', profileImage.replace(/^\//, ''));
+
+  try {
+    await fs.unlink(filePath);
+  } catch (error) {
+    if (error.code !== 'ENOENT') {
+      throw error;
+    }
+  }
+};
+
+const serializeUser = (user, req) => ({
   id: user._id,
   name: user.name,
   email: user.email,
@@ -21,6 +59,7 @@ const serializeUser = (user) => ({
   degree: user.degree,
   year: user.year,
   campus: user.campus,
+  profileImage: getProfileImageUrl(user.profileImage, req),
   settings: {
     ...defaultSettings,
     ...(user.settings || {}),
@@ -96,7 +135,7 @@ exports.getProfile = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      user: serializeUser(user),
+      user: serializeUser(user, req),
     });
   } catch (error) {
     res.status(500).json({
@@ -111,19 +150,49 @@ exports.getProfile = async (req, res) => {
 // @access  Private
 exports.updateProfile = async (req, res) => {
   try {
-    const { name, faculty, degree, year, studentId, campus } = req.body;
+    const { name, faculty, degree, year, studentId, campus, removeProfileImage } = req.body;
+    const currentUser = await User.findById(req.userId);
+
+    if (!currentUser) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    const updates = {
+      name,
+      faculty,
+      degree,
+      studentId,
+      campus,
+    };
+
+    if (year !== undefined && year !== '') {
+      const parsedYear = Number(year);
+      if (Number.isNaN(parsedYear)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid academic year',
+        });
+      }
+      updates.year = parsedYear;
+    }
+
+    const shouldRemoveProfileImage = removeProfileImage === 'true' || removeProfileImage === true;
+
+    if (req.file) {
+      await deleteStoredProfileImage(currentUser.profileImage);
+      updates.profileImage = `/uploads/profile-images/${req.file.filename}`;
+    } else if (shouldRemoveProfileImage) {
+      await deleteStoredProfileImage(currentUser.profileImage);
+      updates.profileImage = '';
+    }
 
     // Find user and update
     const user = await User.findByIdAndUpdate(
       req.userId,
-      {
-        name,
-        faculty,
-        degree,
-        year,
-        studentId,
-        campus,
-      },
+      updates,
       {
         returnDocument: 'after',
         runValidators: true,
@@ -140,7 +209,7 @@ exports.updateProfile = async (req, res) => {
     res.status(200).json({
       success: true,
       message: 'Profile updated successfully',
-      user: serializeUser(user),
+      user: serializeUser(user, req),
     });
   } catch (error) {
     res.status(500).json({

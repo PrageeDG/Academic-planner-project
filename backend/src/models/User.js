@@ -98,6 +98,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: 'SLIIT Malabe',
     },
+    profileImage: {
+      type: String,
+      default: '',
+    },
     settings: {
       type: settingsSchema,
       default: () => ({}),
